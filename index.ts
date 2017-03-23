@@ -1,0 +1,413 @@
+"use strict";
+import { NginxConfFile as NCF } from 'nginx-conf';
+import { SecureCallback } from 'secure-callback';
+
+let nginxConf = new NCF();
+let secure = new SecureCallback();
+
+function backendServerExists(servers, checkedHost) {
+    if (servers == undefined) {
+        return -1;
+    }
+    for (var i = 0; i < servers.length; i++) {
+        if (servers[i]._value == checkedHost || servers[i]._value == checkedHost + ' down') {
+            return i;
+        }
+    }
+    if (servers._value == checkedHost || servers._value == checkedHost + ' down') {
+        return 0;
+    }
+
+    return -1;
+}
+
+function backendServerEnabled(checkedHost) {
+    if (checkedHost != undefined) {
+        var checkedHostStr = new String(checkedHost);
+        return !checkedHostStr.endsWith('down');
+    }
+    return null;
+}
+
+function setStickyCookie(conf, cookieName, enable) {
+    var headers = conf.nginx.server.location.add_header;
+    var isEnabled = false;
+    for (var index = 0; index < headers.length; index++) {
+        var element = headers[index];
+        if (enable) {
+            if (element._value == 'Set-Cookie "' + cookieName + '=true; Expires=Thu, 01-Jan-1970 00:00:01 GMT"') {
+                isEnabled = true;
+                conf.nginx.server.location.add_header[index]._value = 'Set-Cookie "' + cookieName + '=true"';
+            }
+        } else {
+            if (element._value == 'Set-Cookie "' + cookieName + '=true"') {
+                conf.nginx.server.location.add_header[index]._value = 'Set-Cookie "' + cookieName + '=true; Expires=Thu, 01-Jan-1970 00:00:01 GMT"';
+            }
+        }
+    }
+    if (enable && !isEnabled) {
+        conf.nginx.server.location._add('add_header Set-Cookie "' + cookieName + '=true"');
+    }
+}
+
+String.prototype.endsWith = function (suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+class NginxUpstream {
+
+    private _nginxConfigFilePath: string;
+    public get NginxConfigFilePath(): string {
+        return this._nginxConfigFilePath;
+    }
+    public set NginxConfigFilePath(v: string) {
+        this._nginxConfigFilePath = v;
+    }
+
+
+    private _fileSyncTime: Number;
+    public get FileSyncTime(): Number {
+        return this._fileSyncTime;
+    }
+    public set FileSyncTime(v: Number) {
+        this._fileSyncTime = v;
+    }
+
+
+    private _cookieName: string;
+    public get CookieName(): string {
+        return this._cookieName;
+    }
+    public set CookieName(v: string) {
+        this._cookieName = v;
+    }
+
+
+    constructor(nginxConfigFilePath, cookieName: string, fileSyncTime: Number) {
+        if (nginxConfigFilePath) {
+            this._nginxConfigFilePath = nginxConfigFilePath;
+
+        } else {
+            throw new Error("nginx config file path required.");
+        }
+        if (!fileSyncTime) {
+            this._fileSyncTime = 50;
+        } else {
+            this._fileSyncTime = fileSyncTime;
+        }
+        if (cookieName) {
+            this._cookieName = cookieName;
+        } else {
+            this._cookieName = "myappcookie";
+        }
+    }
+
+    addBackendServer(host: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+            if (backendServerExists(conf.nginx.upstream.server, host) == -1) {
+                conf.nginx.upstream._add('server', host);
+                conf.flush();
+                setTimeout(function () {
+                    secure.respond(callback, null);
+                    console.log('Backend server added => ' + host);
+                }, filesyncTime);
+                return;
+            }
+            secure.respond(callback, 'Backend server already exists => ' + host);
+            console.log('Backend server already exists => ' + host);
+        });
+    }
+
+    backendServerList(callback: Function) {
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+
+            if (conf.nginx.upstream == 'undefined') {
+                secure.respond(callback, 'No upstream block defined');
+                console.log('No upstream block defined');
+                return;
+            }
+            var serversDTO = null;
+            var server = conf.nginx.upstream.server;
+            if (server && server.constructor === Array) {
+                serversDTO = new Array(server.length);
+                for (var i = 0; i < server.length; i++) {
+                    serversDTO[i] = {
+                        host: server[i]._value.replace(' down', ''),
+                        enabled: backendServerEnabled(server[i]._value)
+                    };
+                }
+            } else if (server) {
+                serversDTO = new Array(1);
+                serversDTO[0] = {
+                    host: server._value.replace(' down', ''),
+                    enabled: backendServerEnabled(server._value)
+                };
+            }
+            secure.respond(callback, null, serversDTO);
+            console.log('List of backend servers returned');
+            return;
+        });
+    }
+
+    removeBackendServer(host: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+
+            if (conf.nginx.upstream == 'undefined') {
+                secure.respond(callback, 'No upstream block defined');
+                console.log('No upstream block defined');
+                return;
+            }
+
+            var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
+            if (serverIndex > -1) {
+                conf.nginx.upstream._remove('server', serverIndex);
+                conf.flush();
+                setTimeout(function () {
+                    secure.respond(callback, null);
+                    console.log('Backend server removed => ' + host);
+                }, filesyncTime);
+                return;
+            } else {
+                secure.respond(callback, 'Backend server not found => ' + host);
+                console.log('Backend server not found => ' + host);
+            }
+        });
+    }
+
+    toggleBackendServer(host: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+
+            if (conf.nginx.upstream == 'undefined') {
+                secure.respond(callback, 'No upstream block defined');
+                console.log('No upstream block defined');
+                return;
+            }
+            var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
+            if (serverIndex > -1) {
+                var server = conf.nginx.upstream.server;
+                var backendServerValue;
+                if (server && server.constructor === Array) {
+                    backendServerValue = server[serverIndex]._value;
+                } else {
+                    backendServerValue = server._value;
+                }
+
+                var message = '';
+                var enabled = null;
+
+                if (backendServerValue.indexOf('down') == -1) {
+                    if (server && server.constructor === Array) {
+                        server[serverIndex]._value = server[serverIndex]._value + ' down';
+                    } else {
+                        server._value = server._value + ' down';
+                    }
+                    message = 'Disabled backend server => ' + host;
+                    enabled = false;
+                } else {
+                    if (server && server.constructor === Array) {
+                        server[serverIndex]._value = host;
+                    } else {
+                        server._value = host;
+                    }
+                    message = 'Enabled backend server => ' + host;
+                    enabled = true;
+                }
+                conf.flush();
+                setTimeout(function () {
+                    secure.respond(callback, null, enabled);
+                    console.log(message);
+                }, filesyncTime);
+                return;
+            } else {
+                secure.respond(callback, 'Backend server not found. => ' + host);
+                console.log('Backend server not found. => ' + host);
+            }
+        });
+    }
+
+    setCompression(enable: Boolean, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+
+            if (conf.nginx.upstream == 'undefined') {
+                secure.respond(callback, 'No upstream block defined');
+                console.log('No upstream block defined');
+                return;
+            }
+
+            conf.nginx.server.gzip._value = enable ? 'on' : 'off';
+            conf.flush();
+            setTimeout(function () {
+                secure.respond(callback, null, enable);
+                console.log('Compression is ' + (enable ? 'enabled' : 'disabled') + ' for config : ' + configFile);
+            }, filesyncTime);
+            return;
+        });
+    }
+
+    toggleStickySession(callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        var cookieName = this.CookieName;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+
+            if (conf.nginx.upstream == 'undefined') {
+                secure.respond(callback, 'No upstream block defined');
+                console.log('No upstream block defined');
+                return;
+            }
+
+            if (conf.nginx.upstream.ip_hash) {
+                conf.nginx.upstream._remove('ip_hash');
+                setStickyCookie(conf, cookieName, false);
+                conf.flush();
+                setTimeout(function () {
+                    secure.respond(callback, null, false);
+                    console.log('Sticky sessions disabled');
+                }, filesyncTime);
+                return;
+            }
+
+            conf.nginx.upstream._add('ip_hash');
+            setStickyCookie(conf, cookieName, true);
+            conf.flush();
+            setTimeout(function () {
+                secure.respond(callback, null, true);
+                console.log('Sticky sessions enabled');
+            }, filesyncTime);
+            return;
+        });
+    }
+
+    setServer(fqdn: string, sitename: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+            try {
+                conf.nginx.server.server_name._value = fqdn;
+                if (conf.nginx.upstream) {
+                    conf.nginx.upstream._value = sitename;
+                }
+                var proxypass = conf.nginx.server.location.proxy_pass._value;
+                conf.nginx.server.location.proxy_pass._value = 'http://' + sitename;
+                conf.flush();
+            }
+            catch (ex) {
+                secure.respond(callback, ex);
+                console.log(ex);
+                return;
+            }
+            setTimeout(function () {
+                secure.respond(callback, null);
+                console.log('Listen server updated. => ' + fqdn);
+            }, filesyncTime);
+            return;
+        });
+    }
+
+    addCertificate(sitename: string, certificateLocationPath: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        var configFile = this.NginxConfigFilePath;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+            try {
+                // Removing certificate lines just to be sure that there is no duplication in nginx conf file.
+                conf.nginx.server._remove('ssl_certificate');
+                conf.nginx.server._remove('ssl_certificate_key');
+                if (!conf.nginx.server.return) {
+                    conf.nginx.server._add('return 444');
+                }
+                var certFileNameWithoutExtension = certificateLocationPath + sitename;
+                conf.nginx.server._add('ssl_certificate', certFileNameWithoutExtension + '.pem');
+                conf.nginx.server._add('ssl_certificate_key', certFileNameWithoutExtension + '.key');
+                if (conf.nginx.server.return) {
+                    conf.nginx.server._remove('return');
+                }
+                conf.flush();
+            }
+            catch (ex) {
+                secure.respond(callback, ex);
+                console.log(ex);
+                return;
+            }
+            setTimeout(function () {
+                secure.respond(callback, null);
+                console.log('SSL Certificate Paths Set. => ' + configFile);
+            }, filesyncTime);
+            return;
+        });
+    }
+
+    removeCertificate(sitename: string, callback: Function) {
+        var filesyncTime = this.FileSyncTime;
+        var configFile = this.NginxConfigFilePath;
+        nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
+            if (err) {
+                secure.respond(callback, err);
+                console.log(err);
+                return;
+            }
+            try {
+                conf.nginx.server._remove('ssl_certificate');
+                conf.nginx.server._remove('ssl_certificate_key');
+                if (!conf.nginx.server.return) {
+                    conf.nginx.server._add('return 444');
+                }
+                conf.flush();
+            }
+            catch (ex) {
+                secure.respond(callback, ex);
+                console.log(ex);
+                return;
+            }
+            setTimeout(function () {
+                secure.respond(callback, null);
+                console.log('SSL Certificate Paths Set. => ' + configFile);
+            }, filesyncTime);
+            return;
+        });
+    }
+}
+
+export = NginxUpstream;
