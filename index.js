@@ -1,8 +1,7 @@
 "use strict";
-import { NginxConfFile as NCF } from 'nginx-conf';
-import { SecureCallback } from 'secure-callback';
+var nginxConf = require('nginx-conf').NginxConfFile;
+var SecureCallback = require('secure-callback').SecureCallback;
 
-let nginxConf = new NCF();
 let secure = new SecureCallback();
 
 function backendServerExists(servers, checkedHost) {
@@ -56,34 +55,33 @@ String.prototype.endsWith = function (suffix) {
 
 class NginxUpstream {
 
-    private _nginxConfigFilePath: string;
-    public get NginxConfigFilePath(): string {
+    _nginxConfigFilePath;
+    get NginxConfigFilePath() {
         return this._nginxConfigFilePath;
     }
-    public set NginxConfigFilePath(v: string) {
+    set NginxConfigFilePath(v) {
         this._nginxConfigFilePath = v;
     }
 
 
-    private _fileSyncTime: Number;
-    public get FileSyncTime(): Number {
+    _fileSyncTime;
+    get FileSyncTime() {
         return this._fileSyncTime;
     }
-    public set FileSyncTime(v: Number) {
+    set FileSyncTime(v) {
         this._fileSyncTime = v;
     }
 
 
-    private _cookieName: string;
-    public get CookieName(): string {
+    get CookieName() {
         return this._cookieName;
     }
-    public set CookieName(v: string) {
+    set CookieName(v) {
         this._cookieName = v;
     }
 
 
-    constructor(nginxConfigFilePath, cookieName: string, fileSyncTime: Number) {
+    constructor(nginxConfigFilePath, cookieName, fileSyncTime) {
         if (nginxConfigFilePath) {
             this._nginxConfigFilePath = nginxConfigFilePath;
 
@@ -102,7 +100,7 @@ class NginxUpstream {
         }
     }
 
-    addBackendServer(host: string, callback: Function) {
+    addBackendServer(host, callback) {
         var filesyncTime = this.FileSyncTime;
 
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -125,7 +123,7 @@ class NginxUpstream {
         });
     }
 
-    backendServerList(callback: Function) {
+    backendServerList(callback) {
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
                 secure.respond(callback, err);
@@ -161,7 +159,7 @@ class NginxUpstream {
         });
     }
 
-    removeBackendServer(host: string, callback: Function) {
+    removeBackendServer(host, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -192,7 +190,7 @@ class NginxUpstream {
         });
     }
 
-    toggleBackendServer(host: string, callback: Function) {
+    toggleBackendServer(host, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -249,7 +247,7 @@ class NginxUpstream {
         });
     }
 
-    setCompression(enable: Boolean, callback: Function) {
+    setCompression(enable, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -274,7 +272,7 @@ class NginxUpstream {
         });
     }
 
-    toggleStickySession(callback: Function) {
+    toggleStickySession(callback) {
         var filesyncTime = this.FileSyncTime;
         var cookieName = this.CookieName;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -312,7 +310,7 @@ class NginxUpstream {
         });
     }
 
-    setServer(fqdn: string, sitename: string, callback: Function) {
+    setServer(fqdn, sitename, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -342,7 +340,7 @@ class NginxUpstream {
         });
     }
 
-    addCertificate(sitename: string, certificateLocationPath: string, callback: Function) {
+    addCertificate(sitename, certificateLocationPath, callback) {
         var filesyncTime = this.FileSyncTime;
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -379,7 +377,7 @@ class NginxUpstream {
         });
     }
 
-    removeCertificate(sitename: string, callback: Function) {
+    removeCertificate(sitename, callback) {
         var filesyncTime = this.FileSyncTime;
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -410,4 +408,4 @@ class NginxUpstream {
     }
 }
 
-export = NginxUpstream;
+module.exports = NginxUpstream;
