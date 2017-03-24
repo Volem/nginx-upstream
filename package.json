@@ -23,5 +23,9 @@
     "config"
   ],
   "author": "volem",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/Volem/nginx-upstream",
+    "type": "git"
+  }
 }

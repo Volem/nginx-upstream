@@ -73,12 +73,9 @@ describe('NginxUpstream', function () {
 describe('NginxUpstream', function () {
 	describe('setCompression', function () {
 		it('should run successfully.', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.setCompression(true, function (err, enable) {
 				assert.equal(err, null);
-				nu.setCompression(true, function (err, enable) {
-					assert.equal(err, null);
-					assert.equal(enable, true);
-				});
+				assert.equal(enable, true);
 				nu.setCompression(false, function (err, enable) {
 					assert.equal(err, null);
 					assert.equal(enable, false);
