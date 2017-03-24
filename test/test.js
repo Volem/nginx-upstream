@@ -1,4 +1,6 @@
+var debug = require('debug');
 var assert = require('assert');
+var Promise = require('bluebird');
 var NginxUpstream = require('../index');
 var config = require('./config');
 var tmpTestFile = './test/test.conf';
@@ -173,3 +175,34 @@ describe('NginxUpstream', function () {
 		});
 	});
 });
+
+describe('NginxUpstream', function () {
+	describe('Not existing file tests', function () {
+		it('should return errors.', function (done) {
+			var local = new NginxUpstream("notexistingfile");
+			Promise.promisifyAll(local);
+			Promise.all(
+				local.addBackendServerAsync("notimportant").catch((reason) => {
+					if (reason) {
+						return Promise.resolve(null);
+					} else {
+						return Promise.reject('Assert failed')
+					}
+				}),
+				local.backendServerListAsync().catch((reason) => {
+					assert.notEqual(reason, null);
+				}),
+				local.removeBackendServerAsync("notimportant").catch((reason) => {
+					assert.notEqual(reason, null);
+				})
+			).catch(function (reason) {
+				done(reason);
+			})
+		});
+	});
+});
+
+function assertError(reason) {
+	debug(reason);
+	assert.notEqual(reason, null);
+}
