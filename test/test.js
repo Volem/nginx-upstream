@@ -2,7 +2,7 @@ var assert = require('assert');
 var NginxUpstream = require('../index');
 var config = require('./config');
 var tmpTestFile = './test/test.conf';
-
+var nu = new NginxUpstream(tmpTestFile);
 var fs = require('fs');
 
 beforeEach(function (done) {
@@ -17,7 +17,6 @@ beforeEach(function (done) {
 });
 
 describe('NginxUpstream', function () {
-	var nu = new NginxUpstream(tmpTestFile);
 	describe('addBackendServer', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
@@ -29,7 +28,6 @@ describe('NginxUpstream', function () {
 });
 
 describe('NginxUpstream', function () {
-	var nu = new NginxUpstream(tmpTestFile);
 	describe('removeBackendServer', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
@@ -44,7 +42,6 @@ describe('NginxUpstream', function () {
 });
 
 describe('NginxUpstream', function () {
-	var nu = new NginxUpstream(tmpTestFile);
 	describe('toggleBackendServer', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
@@ -59,7 +56,6 @@ describe('NginxUpstream', function () {
 });
 
 describe('NginxUpstream', function () {
-	var nu = new NginxUpstream(tmpTestFile);
 	describe('backendServerList', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
@@ -75,16 +71,31 @@ describe('NginxUpstream', function () {
 });
 
 describe('NginxUpstream', function () {
-	var nu = new NginxUpstream(tmpTestFile);
 	describe('setCompression', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
 				assert.equal(err, null);
 				nu.setCompression(true, function (err, enable) {
+					assert.equal(err, null);
 					assert.equal(enable, true);
 				});
 				nu.setCompression(false, function (err, enable) {
+					assert.equal(err, null);
 					assert.equal(enable, false);
+					done();
+				});
+			});
+		});
+	});
+});
+
+describe('NginxUpstream', function () {
+	describe('toggleStickySession', function () {
+		it('should run successfully.', function (done) {
+			nu.toggleStickySession(function (err, sticky) {
+				assert.equal(sticky, true);
+				nu.toggleStickySession(function (err, sticky) {
+					assert.equal(sticky, false);
 					done();
 				});
 			});
