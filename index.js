@@ -1,6 +1,6 @@
 "use strict";
 var nginxConf = require('nginx-conf').NginxConfFile;
-var SecureCallback = require('secure-callback').SecureCallback;
+var SecureCallback = require('secure-callback');
 
 let secure = new SecureCallback();
 
@@ -54,8 +54,6 @@ String.prototype.endsWith = function (suffix) {
 };
 
 class NginxUpstream {
-
-    _nginxConfigFilePath;
     get NginxConfigFilePath() {
         return this._nginxConfigFilePath;
     }
@@ -63,8 +61,6 @@ class NginxUpstream {
         this._nginxConfigFilePath = v;
     }
 
-
-    _fileSyncTime;
     get FileSyncTime() {
         return this._fileSyncTime;
     }
@@ -80,7 +76,6 @@ class NginxUpstream {
         this._cookieName = v;
     }
 
-
     constructor(nginxConfigFilePath, cookieName, fileSyncTime) {
         if (nginxConfigFilePath) {
             this._nginxConfigFilePath = nginxConfigFilePath;
@@ -89,7 +84,7 @@ class NginxUpstream {
             throw new Error("nginx config file path required.");
         }
         if (!fileSyncTime) {
-            this._fileSyncTime = 50;
+            this._fileSyncTime = 10;
         } else {
             this._fileSyncTime = fileSyncTime;
         }
@@ -249,6 +244,7 @@ class NginxUpstream {
 
     setCompression(enable, callback) {
         var filesyncTime = this.FileSyncTime;
+        var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
                 secure.respond(callback, err);

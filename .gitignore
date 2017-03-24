@@ -59,3 +59,5 @@ typings/
 .vscode
 
 
+# Temporary Test file
+test.conf
