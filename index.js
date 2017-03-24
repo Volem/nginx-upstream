@@ -69,7 +69,6 @@ class NginxUpstream {
         this._fileSyncTime = v;
     }
 
-
     get CookieName() {
         return this._cookieName;
     }
@@ -78,22 +77,12 @@ class NginxUpstream {
     }
 
     constructor(nginxConfigFilePath, cookieName, fileSyncTime) {
-        if (nginxConfigFilePath) {
-            this._nginxConfigFilePath = nginxConfigFilePath;
-
-        } else {
-            throw new Error("nginx config file path required.");
+        if (!nginxConfigFilePath) {
+            throw new Error("nginx config file path required");
         }
-        if (!fileSyncTime) {
-            this._fileSyncTime = 10;
-        } else {
-            this._fileSyncTime = fileSyncTime;
-        }
-        if (cookieName) {
-            this._cookieName = cookieName;
-        } else {
-            this._cookieName = "myappcookie";
-        }
+        this.NginxConfigFilePath = nginxConfigFilePath;
+        this.FileSyncTime = fileSyncTime || 10;
+        this.CookieName = cookieName || "myappcookie";
     }
 
     addBackendServer(host, callback) {
@@ -113,9 +102,10 @@ class NginxUpstream {
                     debug('Backend server added => %s', host);
                 }, filesyncTime);
                 return;
+            } else {
+                secure.respond(callback, 'Backend server already exists => ' + host);
+                debug('Backend server already exists => %s', host);
             }
-            secure.respond(callback, 'Backend server already exists => ' + host);
-            debug('Backend server already exists => %s', host);
         });
     }
 
