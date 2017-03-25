@@ -18,6 +18,10 @@ beforeEach(function (done) {
 	});
 });
 
+after(function () {
+	fs.unlinkSync(tmpTestFile);
+})
+
 describe('NginxUpstream', function () {
 	describe('constructor', function () {
 		it('should run successfully', function () {
@@ -121,15 +125,30 @@ describe('NginxUpstream', function () {
 });
 
 describe('NginxUpstream', function () {
-	describe('backendServerList', function () {
+	describe('backendServerList : multiple backend', function () {
 		it('should run successfully.', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
 				assert.equal(err, null);
-				nu.backendServerList(function (err, backends) {
-					assert.notEqual(backends, null);
-					assert.equal(backends.length, 2);
-					done(err);
+				nu.addBackendServer("localhost:4000", function (err) {
+					assert.equal(err, null);
+					nu.backendServerList(function (err, backends) {
+						assert.notEqual(backends, null);
+						assert.equal(backends.length, 3);
+						done(err);
+					});
 				});
+			});
+		});
+	});
+});
+
+describe('NginxUpstream', function () {
+	describe('backendServerList : single backend', function () {
+		it('should run successfully.', function (done) {
+			nu.backendServerList(function (err, backends) {
+				assert.notEqual(backends, null);
+				assert.equal(backends.length, 1);
+				done(err);
 			});
 		});
 	});
@@ -180,29 +199,32 @@ describe('NginxUpstream', function () {
 	describe('Not existing file tests', function () {
 		it('should return errors.', function (done) {
 			var local = new NginxUpstream("notexistingfile");
+
 			Promise.promisifyAll(local);
-			Promise.all(
-				local.addBackendServerAsync("notimportant").catch((reason) => {
-					if (reason) {
-						return Promise.resolve(null);
-					} else {
-						return Promise.reject('Assert failed')
-					}
-				}),
-				local.backendServerListAsync().catch((reason) => {
+			var rejects = []
+			Promise.all([
+				local.addBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.backendServerListAsync().catch(rejectHandler.bind(rejects)),
+				local.removeBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
+				local.setCompressionAsync(true).catch(rejectHandler.bind(rejects)),
+				local.addCertificateAsync("notimportant", "anyPath").catch(rejectHandler.bind(rejects)),
+				local.removeCertificateAsync("notimportant").catch(rejectHandler.bind(rejects))
+			]).then(function (value) {
+				for (var i = 0; i < rejects.length; i++) {
+					var reason = rejects[i];
 					assert.notEqual(reason, null);
-				}),
-				local.removeBackendServerAsync("notimportant").catch((reason) => {
-					assert.notEqual(reason, null);
-				})
-			).catch(function (reason) {
-				done(reason);
-			})
+				}
+				done();
+			}).catch(function (error) {
+				done(error);
+			});
 		});
 	});
 });
 
-function assertError(reason) {
-	debug(reason);
-	assert.notEqual(reason, null);
+function rejectHandler(reason) {
+	this.push(reason);
 }
+

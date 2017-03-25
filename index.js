@@ -3,7 +3,7 @@ var nginxConf = require('nginx-conf').NginxConfFile;
 var SecureCallback = require('secure-callback');
 var debug = require('debug')('Development');
 
-let secure = new SecureCallback();
+var secure = new SecureCallback();
 
 function backendServerExists(servers, checkedHost) {
     if (servers == undefined) {
@@ -122,7 +122,7 @@ class NginxUpstream {
                 debug('No upstream block defined');
                 return;
             }
-            var serversDTO = null;
+            var serversDTO = [];
             var server = conf.nginx.upstream.server;
             if (server && server.constructor === Array) {
                 serversDTO = new Array(server.length);
@@ -138,6 +138,9 @@ class NginxUpstream {
                     host: server._value.replace(' down', ''),
                     enabled: backendServerEnabled(server._value)
                 };
+            } else {
+                debug('No backend server defined under upstream');
+
             }
             secure.respond(callback, null, serversDTO);
             debug('List of backend servers returned');
