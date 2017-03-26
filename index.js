@@ -115,7 +115,7 @@ class NginxUpstream {
                 return secure.respond(callback, err);
             }
 
-            if (conf.nginx.upstream == 'undefined') {
+            if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
@@ -151,7 +151,7 @@ class NginxUpstream {
                 return secure.respond(callback, err);
             }
 
-            if (conf.nginx.upstream == 'undefined') {
+            if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
@@ -260,7 +260,7 @@ class NginxUpstream {
                 return secure.respond(callback, err);
             }
 
-            if (conf.nginx.upstream == 'undefined') {
+            if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
