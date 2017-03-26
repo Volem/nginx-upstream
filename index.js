@@ -6,7 +6,7 @@ var debug = require('debug')('Development');
 var secure = new SecureCallback();
 
 function backendServerExists(servers, checkedHost) {
-    if (servers == undefined) {
+    if (!servers) {
         return -1;
     }
     for (var i = 0; i < servers.length; i++) {
@@ -22,7 +22,7 @@ function backendServerExists(servers, checkedHost) {
 }
 
 function backendServerEnabled(checkedHost) {
-    if (checkedHost != undefined) {
+    if (!checkedHost) {
         var checkedHostStr = new String(checkedHost);
         return !checkedHostStr.endsWith('down');
     }
@@ -90,21 +90,20 @@ class NginxUpstream {
 
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);;
             }
             if (backendServerExists(conf.nginx.upstream.server, host) == -1) {
                 conf.nginx.upstream._add('server', host);
                 conf.flush();
                 setTimeout(function () {
-                    secure.respond(callback, null);
                     debug('Backend server added => %s', host);
+                    secure.respond(callback, null);
                 }, filesyncTime);
                 return;
             } else {
-                secure.respond(callback, 'Backend server already exists => ' + host);
                 debug('Backend server already exists => %s', host);
+                secure.respond(callback, 'Backend server already exists => ' + host);
             }
         });
     }
@@ -112,15 +111,13 @@ class NginxUpstream {
     backendServerList(callback) {
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
 
             if (conf.nginx.upstream == 'undefined') {
-                secure.respond(callback, 'No upstream block defined');
                 debug('No upstream block defined');
-                return;
+                return secure.respond(callback, 'No upstream block defined');
             }
             var serversDTO = [];
             var server = conf.nginx.upstream.server;
@@ -140,11 +137,9 @@ class NginxUpstream {
                 };
             } else {
                 debug('No backend server defined under upstream');
-
             }
-            secure.respond(callback, null, serversDTO);
             debug('List of backend servers returned');
-            return;
+            return secure.respond(callback, null, serversDTO);
         });
     }
 
@@ -152,15 +147,13 @@ class NginxUpstream {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
 
             if (conf.nginx.upstream == 'undefined') {
-                secure.respond(callback, 'No upstream block defined');
                 debug('No upstream block defined');
-                return;
+                return secure.respond(callback, 'No upstream block defined');
             }
 
             var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
@@ -168,13 +161,13 @@ class NginxUpstream {
                 conf.nginx.upstream._remove('server', serverIndex);
                 conf.flush();
                 setTimeout(function () {
-                    secure.respond(callback, null);
                     debug('Backend server removed => ' + host);
+                    secure.respond(callback, null);
                 }, filesyncTime);
                 return;
             } else {
-                secure.respond(callback, 'Backend server not found => ' + host);
                 debug('Backend server not found => ' + host);
+                return secure.respond(callback, 'Backend server not found => ' + host);
             }
         });
     }
@@ -183,15 +176,13 @@ class NginxUpstream {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
 
             if (conf.nginx.upstream == 'undefined') {
-                secure.respond(callback, 'No upstream block defined');
                 debug('No upstream block defined');
-                return;
+                return secure.respond(callback, 'No upstream block defined');
             }
             var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
             if (serverIndex > -1) {
@@ -225,13 +216,13 @@ class NginxUpstream {
                 }
                 conf.flush();
                 setTimeout(function () {
-                    secure.respond(callback, null, enabled);
                     debug(message);
+                    secure.respond(callback, null, enabled);
                 }, filesyncTime);
                 return;
             } else {
-                secure.respond(callback, 'Backend server not found. => ' + host);
                 debug('Backend server not found. => ' + host);
+                return secure.respond(callback, 'Backend server not found. => ' + host);
             }
         });
     }
@@ -241,22 +232,20 @@ class NginxUpstream {
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
 
             if (conf.nginx.upstream == 'undefined') {
-                secure.respond(callback, 'No upstream block defined');
                 debug('No upstream block defined');
-                return;
+                return secure.respond(callback, 'No upstream block defined');
             }
 
             conf.nginx.server.gzip._value = enable ? 'on' : 'off';
             conf.flush();
             setTimeout(function () {
-                secure.respond(callback, null, enable);
                 debug('Compression is ' + (enable ? 'enabled' : 'disabled') + ' for config : ' + configFile);
+                secure.respond(callback, null, enable);
             }, filesyncTime);
             return;
         });
@@ -267,15 +256,13 @@ class NginxUpstream {
         var cookieName = this.CookieName;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
 
             if (conf.nginx.upstream == 'undefined') {
-                secure.respond(callback, 'No upstream block defined');
                 debug('No upstream block defined');
-                return;
+                return secure.respond(callback, 'No upstream block defined');
             }
 
             if (conf.nginx.upstream.ip_hash) {
@@ -283,8 +270,8 @@ class NginxUpstream {
                 setStickyCookie(conf, cookieName, false);
                 conf.flush();
                 setTimeout(function () {
-                    secure.respond(callback, null, false);
                     debug('Sticky sessions disabled');
+                    secure.respond(callback, null, false);
                 }, filesyncTime);
                 return;
             }
@@ -293,8 +280,8 @@ class NginxUpstream {
             setStickyCookie(conf, cookieName, true);
             conf.flush();
             setTimeout(function () {
-                secure.respond(callback, null, true);
                 debug('Sticky sessions enabled');
+                secure.respond(callback, null, true);
             }, filesyncTime);
             return;
         });
@@ -304,9 +291,8 @@ class NginxUpstream {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
             try {
                 conf.nginx.server.server_name._value = fqdn;
@@ -318,13 +304,12 @@ class NginxUpstream {
                 conf.flush();
             }
             catch (ex) {
-                secure.respond(callback, ex);
                 debug(ex);
-                return;
+                return secure.respond(callback, ex);
             }
             setTimeout(function () {
-                secure.respond(callback, null);
                 debug('Listen server updated. => ' + fqdn);
+                secure.respond(callback, null);
             }, filesyncTime);
             return;
         });
@@ -335,9 +320,8 @@ class NginxUpstream {
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
             try {
                 // Removing certificate lines just to be sure that there is no duplication in nginx conf file.
@@ -355,13 +339,12 @@ class NginxUpstream {
                 conf.flush();
             }
             catch (ex) {
-                secure.respond(callback, ex);
                 debug(ex);
-                return;
+                return secure.respond(callback, ex);
             }
             setTimeout(function () {
-                secure.respond(callback, null);
                 debug('SSL Certificate Paths Set. => ' + configFile);
+                secure.respond(callback, null);
             }, filesyncTime);
             return;
         });
@@ -372,9 +355,8 @@ class NginxUpstream {
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
-                secure.respond(callback, err);
                 debug(err);
-                return;
+                return secure.respond(callback, err);
             }
             try {
                 conf.nginx.server._remove('ssl_certificate');
@@ -385,13 +367,12 @@ class NginxUpstream {
                 conf.flush();
             }
             catch (ex) {
-                secure.respond(callback, ex);
                 debug(ex);
-                return;
+                return secure.respond(callback, ex);
             }
             setTimeout(function () {
-                secure.respond(callback, null);
                 debug('SSL Certificate Paths Set. => ' + configFile);
+                secure.respond(callback, null);
             }, filesyncTime);
             return;
         });

@@ -177,8 +177,26 @@ describe('NginxUpstream', function () {
 				assert.equal(err, null);
 				nu.toggleStickySession(function (err, sticky) {
 					assert.equal(sticky, false);
+					done(err);
+				});
+			});
+		});
+	});
+});
+
+describe('NginxUpstream', function () {
+	describe('toggleStickySession : toggle enabled sticky with headers', function () {
+		it('should run successfully.', function (done) {
+			nu.toggleStickySession(function (err, sticky) {
+				assert.equal(sticky, true);
+				assert.equal(err, null);
+				nu.toggleStickySession(function (err, sticky) {
+					assert.equal(sticky, false);
 					assert.equal(err, null);
-					done();
+					nu.toggleStickySession(function (err, sticky) {
+						assert.equal(sticky, true);
+						done(err);
+					});
 				});
 			});
 		});
@@ -210,7 +228,38 @@ describe('NginxUpstream', function () {
 				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
 				local.setCompressionAsync(true).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync("notimportant", "anyPath").catch(rejectHandler.bind(rejects)),
-				local.removeCertificateAsync("notimportant").catch(rejectHandler.bind(rejects))
+				local.removeCertificateAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.setServerAsync("notimportant", "notimportant").catch(rejectHandler.bind(rejects))
+			]).then(function (value) {
+				for (var i = 0; i < rejects.length; i++) {
+					var reason = rejects[i];
+					assert.notEqual(reason, null);
+				}
+				done();
+			}).catch(function (error) {
+				done(error);
+			});
+		});
+	});
+});
+
+describe('NginxUpstream', function () {
+	describe('No upstream file tests', function () {
+		it('should return errors.', function (done) {
+			var local = new NginxUpstream("");
+
+			Promise.promisifyAll(local);
+			var rejects = []
+			Promise.all([
+				local.addBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.backendServerListAsync().catch(rejectHandler.bind(rejects)),
+				local.removeBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
+				local.setCompressionAsync(true).catch(rejectHandler.bind(rejects)),
+				local.addCertificateAsync("notimportant", "anyPath").catch(rejectHandler.bind(rejects)),
+				local.removeCertificateAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.setServerAsync("notimportant", "notimportant").catch(rejectHandler.bind(rejects))
 			]).then(function (value) {
 				for (var i = 0; i < rejects.length; i++) {
 					var reason = rejects[i];
