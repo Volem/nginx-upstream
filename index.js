@@ -22,11 +22,8 @@ function backendServerExists(servers, checkedHost) {
 }
 
 function backendServerEnabled(checkedHost) {
-    if (checkedHost) {
-        var checkedHostStr = new String(checkedHost);
-        return !checkedHostStr.endsWith('down');
-    }
-    return null;
+    var checkedHostStr = new String(checkedHost);
+    return !checkedHostStr.endsWith('down');
 }
 
 function setStickyCookie(conf, cookieName, enable) {
