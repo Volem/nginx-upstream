@@ -1,0 +1,4 @@
+# Upstream Servers
+upstream nginxconf {
+    server localhost:81;
+}

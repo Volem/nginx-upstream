@@ -22,7 +22,7 @@ function backendServerExists(servers, checkedHost) {
 }
 
 function backendServerEnabled(checkedHost) {
-    if (!checkedHost) {
+    if (checkedHost) {
         var checkedHostStr = new String(checkedHost);
         return !checkedHostStr.endsWith('down');
     }
@@ -92,6 +92,10 @@ class NginxUpstream {
             if (err) {
                 debug(err);
                 return secure.respond(callback, err);;
+            }
+            if (!conf.nginx.upstream) {
+                debug('No upstream block defined');
+                return secure.respond(callback, 'No upstream block defined');
             }
             if (backendServerExists(conf.nginx.upstream.server, host) == -1) {
                 conf.nginx.upstream._add('server', host);
@@ -166,7 +170,7 @@ class NginxUpstream {
                 }, filesyncTime);
                 return;
             } else {
-                debug('Backend server not found => ' + host);
+                debug('Backend server not found => %s', host);
                 return secure.respond(callback, 'Backend server not found => ' + host);
             }
         });
@@ -180,7 +184,7 @@ class NginxUpstream {
                 return secure.respond(callback, err);
             }
 
-            if (conf.nginx.upstream == 'undefined') {
+            if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
@@ -235,12 +239,10 @@ class NginxUpstream {
                 debug(err);
                 return secure.respond(callback, err);
             }
-
-            if (conf.nginx.upstream == 'undefined') {
-                debug('No upstream block defined');
-                return secure.respond(callback, 'No upstream block defined');
+            if (!conf.nginx.server) {
+                debug('No server block defined');
+                return secure.respond(callback, 'No server block defined');
             }
-
             conf.nginx.server.gzip._value = enable ? 'on' : 'off';
             conf.flush();
             setTimeout(function () {
@@ -263,6 +265,10 @@ class NginxUpstream {
             if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
+            }
+            if (!conf.nginx.server) {
+                debug('No server block defined');
+                return secure.respond(callback, 'No server block defined');
             }
 
             if (conf.nginx.upstream.ip_hash) {
@@ -294,18 +300,19 @@ class NginxUpstream {
                 debug(err);
                 return secure.respond(callback, err);
             }
-            try {
+            if (conf.nginx.server && conf.nginx.server.server_name) {
                 conf.nginx.server.server_name._value = fqdn;
-                if (conf.nginx.upstream) {
-                    conf.nginx.upstream._value = sitename;
+                if (!conf.nginx.upstream) {
+                    debug('No upstream block defined');
+                    return secure.respond(callback, 'No upstream block defined');
                 }
+                conf.nginx.upstream._value = sitename;
                 var proxypass = conf.nginx.server.location.proxy_pass._value;
                 conf.nginx.server.location.proxy_pass._value = 'http://' + sitename;
                 conf.flush();
-            }
-            catch (ex) {
-                debug(ex);
-                return secure.respond(callback, ex);
+            } else {
+                debug('No server block defined');
+                return secure.respond(callback, 'No server block defined');
             }
             setTimeout(function () {
                 debug('Listen server updated. => ' + fqdn);
@@ -323,25 +330,27 @@ class NginxUpstream {
                 debug(err);
                 return secure.respond(callback, err);
             }
-            try {
-                // Removing certificate lines just to be sure that there is no duplication in nginx conf file.
+            if (!conf.nginx.server) {
+                debug('No server block defined');
+                return secure.respond(callback, 'No server block defined');
+            }
+            // Removing certificate lines just to be sure that there is no duplication in nginx conf file.
+            if (conf.nginx.server.ssl_certificate) {
                 conf.nginx.server._remove('ssl_certificate');
+            }
+            if (conf.nginx.server.ssl_certificate_key) {
                 conf.nginx.server._remove('ssl_certificate_key');
-                if (!conf.nginx.server.return) {
-                    conf.nginx.server._add('return 444');
-                }
-                var certFileNameWithoutExtension = certificateLocationPath + sitename;
-                conf.nginx.server._add('ssl_certificate', certFileNameWithoutExtension + '.pem');
-                conf.nginx.server._add('ssl_certificate_key', certFileNameWithoutExtension + '.key');
-                if (conf.nginx.server.return) {
-                    conf.nginx.server._remove('return');
-                }
-                conf.flush();
             }
-            catch (ex) {
-                debug(ex);
-                return secure.respond(callback, ex);
+            if (!conf.nginx.server.return) {
+                conf.nginx.server._add('return 444');
             }
+            var certFileNameWithoutExtension = certificateLocationPath + sitename;
+            conf.nginx.server._add('ssl_certificate', certFileNameWithoutExtension + '.pem');
+            conf.nginx.server._add('ssl_certificate_key', certFileNameWithoutExtension + '.key');
+            if (conf.nginx.server.return) {
+                conf.nginx.server._remove('return');
+            }
+            conf.flush();
             setTimeout(function () {
                 debug('SSL Certificate Paths Set. => ' + configFile);
                 secure.respond(callback, null);
@@ -350,7 +359,7 @@ class NginxUpstream {
         });
     }
 
-    removeCertificate(sitename, callback) {
+    removeCertificate(callback) {
         var filesyncTime = this.FileSyncTime;
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -358,18 +367,20 @@ class NginxUpstream {
                 debug(err);
                 return secure.respond(callback, err);
             }
-            try {
+            if (!conf.nginx.server) {
+                debug('No server block defined');
+                return secure.respond(callback, 'No server block defined');
+            }
+            if (conf.nginx.server.ssl_certificate) {
                 conf.nginx.server._remove('ssl_certificate');
+            }
+            if (conf.nginx.server.ssl_certificate_key) {
                 conf.nginx.server._remove('ssl_certificate_key');
-                if (!conf.nginx.server.return) {
-                    conf.nginx.server._add('return 444');
-                }
-                conf.flush();
             }
-            catch (ex) {
-                debug(ex);
-                return secure.respond(callback, ex);
+            if (!conf.nginx.server.return) {
+                conf.nginx.server._add('return 444');
             }
+            conf.flush();
             setTimeout(function () {
                 debug('SSL Certificate Paths Set. => ' + configFile);
                 secure.respond(callback, null);

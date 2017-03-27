@@ -1,4 +1,6 @@
 module.exports = {
     testConfigFile : "./test/nginxconfigs/nginxconf-template",
-    testConfigFileNoUpstream : "./test/nginxconfigs/nginxconf-template-noupstream"
+    testConfigFileSSL : "./test/nginxconfigs/nginxconf-template.ssl",
+    testConfigFileNoUpstream : "./test/nginxconfigs/nginxconf-template-noupstream",
+    testConfigFileNoServer : "./test/nginxconfigs/nginxconf-template-noserver"
 }
