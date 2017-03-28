@@ -7,10 +7,6 @@ server {
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers 'AES128+EECDH:AES128+EDH';
     ssl_prefer_server_ciphers on;
-# GZIP
-    gzip off;
-    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-    gunzip on;
 # Location
     location / {
         proxy_set_header X-Real-IP $remote_addr;
