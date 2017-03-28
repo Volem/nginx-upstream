@@ -19,14 +19,14 @@ declare module NU {
         /**
          * Adds new backend server to the upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
-         * @param callback
+         * @param callback Calls with error if any
          */
         addBackendServer(host: string, callback: (err: any) => void);
         /**
          * To retrieve backend server list of the upstream block
          * @param callback Returns backend server array as second parameter
          */
-        backendServerList(callback: (err: any, servers: Array) => void);
+        backendServerList(callback: (err: any, servers: Array<string>) => void);
         /**
          * Removes the host from upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
@@ -39,12 +39,15 @@ declare module NU {
          * @param callback Calls with error if any
          */
         toggleBackendServer(host: string, callback: (err: any) => void);
+        
         /**
          * Enables or disables gzip compresion for the server
          * @param enable To enable compresion set to true, otherwise false
+         * @param types Types of gzip as array of string. ie. ["text/plain", "text/css"] 
+         * Default Types : text/plain, text/css, application/json, application/x-javascript, text/xml, application/xml, application/xml+rss, text/javascript
          * @param callback Returns the status set as the second parameter
          */
-        setCompression(enable: boolean, callback: (err: any, compressionStatus: boolean) => void);
+        setCompression(enable: boolean, types: Array<string>, callback: (err: any, compressionStatus: boolean) => void)
         /**
          * Toggles between sticky session and round robin. Uses ip_hash and creates a cookie with the name given at constructor
          * @param callback Returns if sticky session enabled or not
