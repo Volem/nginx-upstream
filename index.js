@@ -228,7 +228,7 @@ class NginxUpstream {
         });
     }
 
-    setCompression(enable, callback) {
+    setCompression(enable, types, callback) {
         var filesyncTime = this.FileSyncTime;
         var configFile = this.NginxConfigFilePath;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
@@ -240,7 +240,27 @@ class NginxUpstream {
                 debug('No server block defined');
                 return secure.respond(callback, 'No server block defined');
             }
-            conf.nginx.server.gzip._value = enable ? 'on' : 'off';
+            if (!conf.nginx.server.gzip) {
+                conf.nginx.server._add('gzip ' + (enable ? 'on' : 'off'));
+            } else {
+                conf.nginx.server.gzip._value = (enable ? 'on' : 'off');
+            }
+            var gzipTypesConfig = 'text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript';
+            if (Array.isArray(types)) {
+                gzipTypesConfig = '';
+                gzipTypesConfig = types.reduce(function (element, gzipTypesConfig) {
+                    return gzipTypesConfig + ' ' + element;
+                });
+                gzipTypesConfig.slice(0, -1);
+            }
+            if (!conf.nginx.server.gzip_types) {
+                conf.nginx.server._add('gzip_types ' + gzipTypesConfig);
+            } else {
+                conf.nginx.server.gzip_types._value = gzipTypesConfig;
+            }
+            if (!conf.nginx.server.gunzip) {
+                conf.nginx.server._add('gunzip on');
+            }
             conf.flush();
             setTimeout(function () {
                 debug('Compression is ' + (enable ? 'enabled' : 'disabled') + ' for config : ' + configFile);

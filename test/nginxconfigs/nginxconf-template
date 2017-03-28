@@ -8,10 +8,6 @@ server {
     listen 80;
 # Server (FQDN)
     server_name example2.com;
-# GZIP
-    gzip off;
-    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-    gunzip on;
 # Location
     location / {
         proxy_set_header X-Real-IP $remote_addr;

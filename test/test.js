@@ -192,11 +192,20 @@ describe('NginxUpstream', function () {
 
 	describe('setCompression', function () {
 		it('should run successfully', function (done) {
-			nu.setCompression(true, function (err, enable) {
+			nu.setCompression(true, null, function (err, enable) {
 				assert.equal(err, null);
 				assert.equal(enable, true);
-				nu.setCompression(false, function (err, enable) {
+				nu.setCompression(false, ["text/plain", "text/css"], function (err, enable) {
 					assert.equal(enable, false);
+				});
+			});
+
+			// Coverage purposes :)
+			nu.setCompression(false, null, function (err, enable) {
+				assert.equal(err, null);
+				assert.equal(enable, false);
+				nu.setCompression(true, ["text/plain", "text/css"], function (err, enable) {
+					assert.equal(enable, true);
 					done(err);
 				});
 			});
@@ -255,7 +264,7 @@ describe('NginxUpstream', function () {
 				local.removeBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
 				local.toggleBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
 				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
-				local.setCompressionAsync(true).catch(rejectHandler.bind(rejects)),
+				local.setCompressionAsync(false, null).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync("notimportant", "anyPath").catch(rejectHandler.bind(rejects)),
 				local.removeCertificateAsync().catch(rejectHandler.bind(rejects)),
 				local.setServerAsync("notimportant", "notimportant").catch(rejectHandler.bind(rejects))
@@ -383,7 +392,7 @@ describe('No Server', function () {
 			Promise.all([
 				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
 				local.setServerAsync("www.example.com", "notimportant").catch(rejectHandler.bind(rejects)),
-				local.setCompressionAsync(true).catch(rejectHandler.bind(rejects)),
+				local.setCompressionAsync(false, null).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync("notimportant", "notimportant").catch(rejectHandler.bind(rejects)),
 				local.removeCertificateAsync().catch(rejectHandler.bind(rejects))
 			]).then(function (value) {
