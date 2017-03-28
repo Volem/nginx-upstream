@@ -63,7 +63,7 @@ describe('NginxUpstream', function () {
 	describe('removeBackendServer', function () {
 		it('should run successfully', function (done) {
 			nu.addBackendServer("localhost:3000", function (err) {
-				assert.equal(err, null);
+				assert.ifError(err);
 				nu.removeBackendServer("localhost:3000", function (err) {
 					done(err);
 				});
