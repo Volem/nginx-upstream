@@ -1,7 +1,7 @@
 {
   "name": "nginx-upstream",
   "version": "1.0.0",
-  "description": "",
+  "description": "Nginx Config File Manager",
   "main": "index.js",
   "dependencies": {
     "bluebird": "^3.5.0",
