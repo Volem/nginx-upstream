@@ -20,8 +20,10 @@
   },
   "keywords": [
     "nginx",
-    "upstream",
-    "config"
+    "manage",
+    "update",
+    "config",
+    "file"
   ],
   "author": "volem",
   "license": "MIT",
