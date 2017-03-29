@@ -40,19 +40,19 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('addBackendServer', function () {
+	describe('addBackend', function () {
 		it('should run successfully', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.addBackend("localhost:3000", function (err) {
 				done(err);
 			});
 		});
 	});
 
-	describe('addBackendServer : Add existing backend server', function () {
+	describe('addBackend : Add existing backend server', function () {
 		it('should return error : Backend server already exists => localhost:3000', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.addBackend("localhost:3000", function (err) {
 				assert.ifError(err);
-				nu.addBackendServer("localhost:3000", function (err) {
+				nu.addBackend("localhost:3000", function (err) {
 					assert.equal(err, 'Backend server already exists => localhost:3000')
 					done();
 				});
@@ -60,20 +60,20 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('removeBackendServer', function () {
+	describe('removeBackend', function () {
 		it('should run successfully', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.addBackend("localhost:3000", function (err) {
 				assert.ifError(err);
-				nu.removeBackendServer("localhost:3000", function (err) {
+				nu.removeBackend("localhost:3000", function (err) {
 					done(err);
 				});
 			});
 		});
 	});
 
-	describe('removeBackendServer', function () {
+	describe('removeBackend', function () {
 		it('should return error : Backend server not found => localhost:300', function (done) {
-			nu.removeBackendServer("localhost:300", function (err) {
+			nu.removeBackend("localhost:300", function (err) {
 				assert.equal(err, 'Backend server not found => localhost:300')
 				done();
 			});
@@ -82,19 +82,19 @@ describe('NginxUpstream', function () {
 
 	describe('no backend server block', function () {
 		it('should run successfully', function (done) {
-			nu.backendServerList(function (err, backends) {
+			nu.backendList(function (err, backends) {
 				assert.ifError(err);
 				assert.equal(backends.length, 1);
-				nu.removeBackendServer(backends[0].host, function (err) {
+				nu.removeBackend(backends[0].host, function (err) {
 					assert.ifError(err);
 					Promise.promisifyAll(nu);
-					nu.addBackendServerAsync("localhost:3000")
+					nu.addBackendAsync("localhost:3000")
 						.then(function () {
-							return nu.toggleBackendServerAsync("localhost:3000");
+							return nu.toggleBackendAsync("localhost:3000");
 						})
 						.then(function (status) {
 							assert.equal(status, false);
-							return nu.removeBackendServerAsync("localhost:3000");
+							return nu.removeBackendAsync("localhost:3000");
 						})
 						.then(function () {
 							done();
@@ -106,16 +106,16 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('toggleBackendServer : single backend', function () {
+	describe('toggleBackend : single backend', function () {
 		it('should run successfully', function (done) {
-			nu.backendServerList(function (err, backends) {
+			nu.backendList(function (err, backends) {
 				assert.ifError(err);
 				assert.equal(backends.length, 1);
 				// Disable Backend
-				nu.toggleBackendServer(backends[0].host, function (err) {
+				nu.toggleBackend(backends[0].host, function (err) {
 					assert.ifError(err);
 					// Enable Backend
-					nu.toggleBackendServer(backends[0].host, function (err) {
+					nu.toggleBackend(backends[0].host, function (err) {
 						done(err);
 					});
 				});
@@ -123,24 +123,24 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('toggleBackendServer (not existing backend)', function () {
+	describe('toggleBackend (not existing backend)', function () {
 		it('should return error : Backend server not found. => localhost:3000', function (done) {
-			nu.toggleBackendServer("localhost:3000", function (err) {
+			nu.toggleBackend("localhost:3000", function (err) {
 				assert.equal(err, 'Backend server not found. => localhost:3000');
 				done();
 			});
 		});
 	});
 
-	describe('toggleBackendServer : multiple backend', function () {
+	describe('toggleBackend : multiple backend', function () {
 		it('should run successfully', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.addBackend("localhost:3000", function (err) {
 				assert.ifError(err);
 				// Disable Backend
-				nu.toggleBackendServer("localhost:3000", function (err) {
+				nu.toggleBackend("localhost:3000", function (err) {
 					assert.ifError(err);
 					// Enable Backend
-					nu.toggleBackendServer("localhost:3000", function (err) {
+					nu.toggleBackend("localhost:3000", function (err) {
 						done(err);
 					});
 				});
@@ -148,13 +148,13 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('backendServerList : multiple backend', function () {
+	describe('backendList : multiple backend', function () {
 		it('should run successfully', function (done) {
-			nu.addBackendServer("localhost:3000", function (err) {
+			nu.addBackend("localhost:3000", function (err) {
 				assert.equal(err, null);
-				nu.addBackendServer("localhost:4000", function (err) {
+				nu.addBackend("localhost:4000", function (err) {
 					assert.equal(err, null);
-					nu.backendServerList(function (err, backends) {
+					nu.backendList(function (err, backends) {
 						assert.notEqual(backends, null);
 						assert.equal(backends.length, 3);
 						done(err);
@@ -164,9 +164,9 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('backendServerList : single backend', function () {
+	describe('backendList : single backend', function () {
 		it('should run successfully', function (done) {
-			nu.backendServerList(function (err, backends) {
+			nu.backendList(function (err, backends) {
 				assert.notEqual(backends, null);
 				assert.equal(backends.length, 1);
 				done(err);
@@ -174,13 +174,13 @@ describe('NginxUpstream', function () {
 		});
 	});
 
-	describe('backendServerList : empty backend', function () {
+	describe('backendList : empty backend', function () {
 		it('should run successfully', function (done) {
-			nu.backendServerList(function (err, backends) {
+			nu.backendList(function (err, backends) {
 				assert.notEqual(backends, null);
 				assert.equal(backends.length, 1);
-				nu.removeBackendServer(backends[0].host, function (err) {
-					nu.backendServerList(function (err, backends) {
+				nu.removeBackend(backends[0].host, function (err) {
+					nu.backendList(function (err, backends) {
 						assert.notEqual(backends, null);
 						assert.equal(backends.length, 0);
 						done(err);
@@ -259,10 +259,10 @@ describe('NginxUpstream', function () {
 			Promise.promisifyAll(local);
 			var rejects = []
 			Promise.all([
-				local.addBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
-				local.backendServerListAsync().catch(rejectHandler.bind(rejects)),
-				local.removeBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
-				local.toggleBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.addBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.backendListAsync().catch(rejectHandler.bind(rejects)),
+				local.removeBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
 				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
 				local.setCompressionAsync(false, null).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync("notimportant", "anyPath").catch(rejectHandler.bind(rejects)),
@@ -350,10 +350,10 @@ describe('No Upstream', function () {
 			Promise.promisifyAll(local);
 			var rejects = []
 			Promise.all([
-				local.addBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
-				local.backendServerListAsync().catch(rejectHandler.bind(rejects)),
-				local.removeBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
-				local.toggleBackendServerAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.addBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.backendListAsync().catch(rejectHandler.bind(rejects)),
+				local.removeBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
+				local.toggleBackendAsync("notimportant").catch(rejectHandler.bind(rejects)),
 				local.toggleStickySessionAsync().catch(rejectHandler.bind(rejects)),
 				local.setServerAsync("www.example.com", "notimportant").catch(rejectHandler.bind(rejects))
 			]).then(function (value) {

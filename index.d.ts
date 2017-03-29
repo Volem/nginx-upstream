@@ -21,24 +21,24 @@ declare module NU {
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
          * @param callback Calls with error if any
          */
-        addBackendServer(host: string, callback: (err: any) => void);
+        addBackend(host: string, callback: (err: any) => void);
         /**
          * To retrieve backend server list of the upstream block
          * @param callback Returns backend server array as second parameter
          */
-        backendServerList(callback: (err: any, servers: Array<string>) => void);
+        backendList(callback: (err: any, servers: Array<string>) => void);
         /**
          * Removes the host from upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
          * @param callback Calls with error if any
          */
-        removeBackendServer(host: string, callback: (err: any) => void);
+        removeBackend(host: string, callback: (err: any) => void);
         /**
          * Enables or disables the backend server at upstream block. ie. Upstream block for that host would be myapp.example.com:80 down
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
          * @param callback Calls with error if any
          */
-        toggleBackendServer(host: string, callback: (err: any) => void);
+        toggleBackend(host: string, callback: (err: any) => void);
         
         /**
          * Enables or disables gzip compresion for the server

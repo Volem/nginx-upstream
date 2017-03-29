@@ -5,7 +5,7 @@ var debug = require('debug')('Development');
 
 var secure = new SecureCallback();
 
-function backendServerExists(servers, checkedHost) {
+function backendExists(servers, checkedHost) {
     if (!servers) {
         return -1;
     }
@@ -21,7 +21,7 @@ function backendServerExists(servers, checkedHost) {
     return -1;
 }
 
-function backendServerEnabled(checkedHost) {
+function backendEnabled(checkedHost) {
     var checkedHostStr = new String(checkedHost);
     return !checkedHostStr.endsWith('down');
 }
@@ -82,9 +82,8 @@ class NginxUpstream {
         this.CookieName = cookieName || "myappcookie";
     }
 
-    addBackendServer(host, callback) {
+    addBackend(host, callback) {
         var filesyncTime = this.FileSyncTime;
-
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
                 debug(err);
@@ -94,7 +93,7 @@ class NginxUpstream {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
-            if (backendServerExists(conf.nginx.upstream.server, host) == -1) {
+            if (backendExists(conf.nginx.upstream.server, host) == -1) {
                 conf.nginx.upstream._add('server', host);
                 conf.flush();
                 setTimeout(function () {
@@ -109,7 +108,7 @@ class NginxUpstream {
         });
     }
 
-    backendServerList(callback) {
+    backendList(callback) {
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
                 debug(err);
@@ -127,14 +126,14 @@ class NginxUpstream {
                 for (var i = 0; i < server.length; i++) {
                     serversDTO[i] = {
                         host: server[i]._value.replace(' down', ''),
-                        enabled: backendServerEnabled(server[i]._value)
+                        enabled: backendEnabled(server[i]._value)
                     };
                 }
             } else if (server) {
                 serversDTO = new Array(1);
                 serversDTO[0] = {
                     host: server._value.replace(' down', ''),
-                    enabled: backendServerEnabled(server._value)
+                    enabled: backendEnabled(server._value)
                 };
             } else {
                 debug('No backend server defined under upstream');
@@ -144,7 +143,7 @@ class NginxUpstream {
         });
     }
 
-    removeBackendServer(host, callback) {
+    removeBackend(host, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -157,7 +156,7 @@ class NginxUpstream {
                 return secure.respond(callback, 'No upstream block defined');
             }
 
-            var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
+            var serverIndex = backendExists(conf.nginx.upstream.server, host);
             if (serverIndex > -1) {
                 conf.nginx.upstream._remove('server', serverIndex);
                 conf.flush();
@@ -173,7 +172,7 @@ class NginxUpstream {
         });
     }
 
-    toggleBackendServer(host, callback) {
+    toggleBackend(host, callback) {
         var filesyncTime = this.FileSyncTime;
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
@@ -185,20 +184,20 @@ class NginxUpstream {
                 debug('No upstream block defined');
                 return secure.respond(callback, 'No upstream block defined');
             }
-            var serverIndex = backendServerExists(conf.nginx.upstream.server, host);
+            var serverIndex = backendExists(conf.nginx.upstream.server, host);
             if (serverIndex > -1) {
                 var server = conf.nginx.upstream.server;
-                var backendServerValue;
+                var backendValue;
                 if (server && server.constructor === Array) {
-                    backendServerValue = server[serverIndex]._value;
+                    backendValue = server[serverIndex]._value;
                 } else {
-                    backendServerValue = server._value;
+                    backendValue = server._value;
                 }
 
                 var message = '';
                 var enabled = null;
 
-                if (backendServerValue.indexOf('down') == -1) {
+                if (backendValue.indexOf('down') == -1) {
                     if (server && server.constructor === Array) {
                         server[serverIndex]._value = server[serverIndex]._value + ' down';
                     } else {
