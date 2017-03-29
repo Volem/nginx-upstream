@@ -11,12 +11,14 @@
     "typescript": "^2.2.2"
   },
   "devDependencies": {
+    "eslint": "^3.18.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0"
   },
   "scripts": {
     "test": "mocha --colors -u tdd",
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha --color test/test.js"
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha --color test/test.js",
+    "style": "eslint index.js"
   },
   "keywords": [
     "nginx",

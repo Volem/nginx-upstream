@@ -87,7 +87,7 @@ class NginxUpstream {
         nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
             if (err) {
                 debug(err);
-                return secure.respond(callback, err);;
+                return secure.respond(callback, err);
             }
             if (!conf.nginx.upstream) {
                 debug('No upstream block defined');
@@ -323,7 +323,6 @@ class NginxUpstream {
                     return secure.respond(callback, 'No upstream block defined');
                 }
                 conf.nginx.upstream._value = sitename;
-                var proxypass = conf.nginx.server.location.proxy_pass._value;
                 conf.nginx.server.location.proxy_pass._value = 'http://' + sitename;
                 conf.flush();
             } else {
