@@ -1,6 +1,6 @@
 {
   "name": "nginx-upstream",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Nginx Config File Manager",
   "main": "index.js",
   "dependencies": {
