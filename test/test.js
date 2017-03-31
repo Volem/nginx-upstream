@@ -281,7 +281,7 @@ describe('NginxUpstream', function () {
 	});
 });
 
-describe.only('SSL Config', function () {
+describe('SSL Config', function () {
 	beforeEach(function (done) {
 		var writeCopy = fs.createWriteStream(tmpTestFile);
 		var readTemplate = fs.createReadStream(config.testConfigFileSSL);
@@ -319,7 +319,7 @@ describe.only('SSL Config', function () {
 		});
 	});
 
-	describe.only('addCertificate : already exists', function () {
+	describe('addCertificate : already exists', function () {
 		it('should run successfully', function (done) {
 			nu.addCertificate('example', 'path', function () {
 				nu.addCertificate('example', 'path', function (err) {
