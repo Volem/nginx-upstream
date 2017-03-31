@@ -18,7 +18,8 @@
   "scripts": {
     "test": "mocha --colors -u tdd",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha --color test/test.js",
-    "style": "eslint index.js"
+    "style": "eslint index.js test/*.js",
+    "stylefix": "eslint --fix index.js test/*.js"
   },
   "keywords": [
     "nginx",

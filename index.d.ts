@@ -15,7 +15,7 @@ declare module NU {
          * @param cookieName Optional cookiename for sticky session settings. Default myappcookie
          * @param fileSyncTime Optional configuration file flush timeout in miliseconds. Default 10ms
          */
-        constructor(nginxConfigFilePath: string, cookieName?: string, fileSyncTime?: number);
+        constructor(nginxConfigFilePath: string, fileSyncTime?: number);
         /**
          * Adds new backend server to the upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
@@ -52,7 +52,7 @@ declare module NU {
          * Toggles between sticky session and round robin. Uses ip_hash and creates a cookie with the name given at constructor
          * @param callback Returns if sticky session enabled or not
          */
-        toggleStickySession(callback: (err: any, stickySessionStatus: boolean) => void);
+        toggleStickySession(cookieName: string, callback: (err: any, stickySessionStatus: boolean) => void);
         /**
          * Sets the Fully Qualified Domain Name for the virtual server
          * @param fqdn Fully Qualified Domain Name. ie. www.example.com
