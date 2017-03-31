@@ -243,7 +243,10 @@ describe('NginxUpstream', function () {
 
 	describe('setServer', function () {
 		it('should run successfully', function (done) {
-			nu.setServer('www.example.com', 'example', function (err) {
+			nu.setServer('www.example.com', 'example', true, function (err) {
+				assert.ifError(err);
+			});
+			nu.setServer('www.example.com', 'example', false, function (err) {
 				done(err);
 			});
 		});
@@ -266,7 +269,7 @@ describe('NginxUpstream', function () {
 				local.setCompressionAsync(false, null).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync('notimportant', 'anyPath').catch(rejectHandler.bind(rejects)),
 				local.removeCertificateAsync().catch(rejectHandler.bind(rejects)),
-				local.setServerAsync('notimportant', 'notimportant').catch(rejectHandler.bind(rejects))
+				local.setServerAsync('notimportant', 'notimportant', true).catch(rejectHandler.bind(rejects))
 			]).then(function () {
 				assert.equal(rejects.length, 9);
 				for (var i = 0; i < rejects.length; i++) {
@@ -354,7 +357,7 @@ describe('No Upstream', function () {
 				local.removeBackendAsync('notimportant').catch(rejectHandler.bind(rejects)),
 				local.toggleBackendAsync('notimportant').catch(rejectHandler.bind(rejects)),
 				local.toggleStickySessionAsync('cookiename').catch(rejectHandler.bind(rejects)),
-				local.setServerAsync('www.example.com', 'notimportant').catch(rejectHandler.bind(rejects))
+				local.setServerAsync('www.example.com', 'notimportant', true).catch(rejectHandler.bind(rejects))
 			]).then(function () {
 				assert.equal(rejects.length, 6);
 				for (var i = 0; i < rejects.length; i++) {
@@ -390,7 +393,7 @@ describe('No Server', function () {
 			var rejects = [];
 			Promise.all([
 				local.toggleStickySessionAsync('cookiename').catch(rejectHandler.bind(rejects)),
-				local.setServerAsync('www.example.com', 'notimportant').catch(rejectHandler.bind(rejects)),
+				local.setServerAsync('www.example.com', 'notimportant', true).catch(rejectHandler.bind(rejects)),
 				local.setCompressionAsync(false, null).catch(rejectHandler.bind(rejects)),
 				local.addCertificateAsync('notimportant', 'notimportant').catch(rejectHandler.bind(rejects)),
 				local.removeCertificateAsync().catch(rejectHandler.bind(rejects))

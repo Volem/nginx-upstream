@@ -59,7 +59,7 @@ declare module NU {
          * @param sitename Sitename alias in nginx config file. Should be unique per nginx server
          * @param callback Calls with error if any
          */
-        setServer(fqdn: string, sitename: string, callback: (err: any) => void);
+        setServer(fqdn: string, sitename: string, setUpstream: boolean, callback: (err: any) => void);
         /**
          * Adds certificate information to nginx config file
          * @param sitename Sitename alias in nginx config file. Should be unique per nginx server
