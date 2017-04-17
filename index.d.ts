@@ -25,7 +25,7 @@ declare module NU {
          * To retrieve backend server list of the upstream block
          * @param callback Returns backend server array as second parameter
          */
-        backendList(callback: (err: any, servers: Array<string>) => void);
+        backendList(callback: (err: any, servers: Array<Object>) => void);
         /**
          * Removes the host from upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
