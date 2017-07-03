@@ -1,3 +1,4 @@
+'use strict';
 var Logger = require('./logbase.js');
 var bunyan = require('bunyan');
 

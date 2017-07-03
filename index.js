@@ -79,7 +79,8 @@ class NginxUpstream {
 	}
 
 	addBackend(host, callback) {
-		var filesyncTime = this.FileSyncTime;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
 			if (err) {
 				debug(err);
@@ -88,6 +89,7 @@ class NginxUpstream {
 			}
 			if (!conf.nginx.upstream) {
 				debug('No upstream block defined');
+				logger.Error(new Error('No upstream block defined. File : ' + path));
 				return secure.respond(callback, 'No upstream block defined');
 			}
 			if (backendExists(conf.nginx.upstream.server, host) == -1) {
@@ -95,11 +97,13 @@ class NginxUpstream {
 				conf.flush();
 				setTimeout(function () {
 					debug('Backend server added => %s', host);
+					logger.Info(new Error('Backend server added => ' + host + '. File : ' + path));
 					secure.respond(callback, null);
 				}, filesyncTime);
 				return;
 			} else {
 				debug('Backend server already exists => %s', host);
+				logger.Info(new Error('Backend server already exists => ' + host + '. File : ' + path));
 				secure.respond(callback, 'Backend server already exists => ' + host);
 			}
 		});
