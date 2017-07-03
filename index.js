@@ -75,7 +75,7 @@ class NginxUpstream {
 			throw new Error('nginx config file path required');
 		}
 		this.NginxConfigFilePath = nginxConfigFilePath;
-		this.FileSyncTime = fileSyncTime || 10;
+		this.FileSyncTime = fileSyncTime || 50;
 	}
 
 	addBackend(host, callback) {

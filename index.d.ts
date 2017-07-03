@@ -12,8 +12,7 @@ declare module NU {
     class NginxUpstream {
         /**
          * @param nginxConfigFilePath Full path for nginx configuration file. ie. /etc/nginx/nginx.conf
-         * @param cookieName Optional cookiename for sticky session settings. Default myappcookie
-         * @param fileSyncTime Optional configuration file flush timeout in miliseconds. Default 10ms
+         * @param fileSyncTime Optional configuration file flush timeout in miliseconds. Default 50ms
          */
         constructor(nginxConfigFilePath: string, fileSyncTime?: number);
         /**
@@ -26,7 +25,7 @@ declare module NU {
          * To retrieve backend server list of the upstream block
          * @param callback Returns backend server array as second parameter
          */
-        backendList(callback: (err: any, servers: Array<string>) => void);
+        backendList(callback: (err: any, servers: Array<Object>) => void);
         /**
          * Removes the host from upstream block
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
@@ -36,9 +35,9 @@ declare module NU {
         /**
          * Enables or disables the backend server at upstream block. ie. Upstream block for that host would be myapp.example.com:80 down
          * @param host Backend server ip or host together with port value. ie. 12.34.56.78:8080 or myapp.example.com:80
-         * @param callback Calls with error if any
+         * @param callback Calls with error if any. Returns current status of the backend as second parameter.
          */
-        toggleBackend(host: string, callback: (err: any) => void);
+        toggleBackend(host: string, callback: (err: any, status: boolean) => void);
         
         /**
          * Enables or disables gzip compresion for the server
