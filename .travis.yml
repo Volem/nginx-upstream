@@ -8,7 +8,5 @@ node_js:
   - "iojs"
 install:
   - npm install
-after_install:
-  - mkdir log
 script:
   - npm test

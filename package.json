@@ -17,7 +17,7 @@
     "mocha": "^3.2.0"
   },
   "scripts": {
-    "test": "mocha --colors -u tdd",
+    "test": "mkdir log && mocha --colors -u tdd",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha --color test/test.js",
     "style": "eslint index.js test/*.js",
     "stylefix": "eslint --fix index.js test/*.js"
