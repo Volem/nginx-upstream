@@ -82,49 +82,41 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				logger.Error(new Error(err));
-				return secure.respond(callback, err);
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
-			if (!conf.nginx.upstream) {
-				debug('No upstream block defined');
-				logger.Error(new Error('No upstream block defined. File : ' + path));
-				return secure.respond(callback, 'No upstream block defined');
-			}
+
 			if (backendExists(conf.nginx.upstream.server, host) == -1) {
 				conf.nginx.upstream._add('server', host);
 				conf.flush();
 				setTimeout(function () {
 					debug('Backend server added => %s', host);
-					logger.Info(new Error('Backend server added => ' + host + '. File : ' + path));
+					logger.Info('Backend server added => ' + host + '. File : ' + path);
 					secure.respond(callback, null);
 				}, filesyncTime);
 				return;
 			} else {
 				debug('Backend server already exists => %s', host);
-				logger.Info(new Error('Backend server already exists => ' + host + '. File : ' + path));
+				logger.Info('Backend server already exists => ' + host + '. File : ' + path);
 				secure.respond(callback, 'Backend server already exists => ' + host);
 			}
 		});
 	}
 
 	backendList(callback) {
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				return secure.respond(callback, err);
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
 
-			if (!conf.nginx.upstream) {
-				debug('No upstream block defined');
-				return secure.respond(callback, 'No upstream block defined');
-			}
-			var serversDTO = [];
-			var server = conf.nginx.upstream.server;
+			let serversDTO = [];
+			let server = conf.nginx.upstream.server;
 			if (server && Array.isArray(server)) {
 				serversDTO = new Array(server.length);
-				for (var i = 0; i < server.length; i++) {
+				for (let i = 0; i < server.length; i++) {
 					serversDTO[i] = {
 						host: server[i]._value.replace(' down', ''),
 						enabled: backendEnabled(server[i]._value)
@@ -137,6 +129,7 @@ class NginxUpstream {
 					enabled: backendEnabled(server._value)
 				};
 			} else {
+				logger.Info('No backend server defined under upstream. File : ' + path);
 				debug('No backend server defined under upstream');
 			}
 			debug('List of backend servers returned');
@@ -145,16 +138,12 @@ class NginxUpstream {
 	}
 
 	removeBackend(host, callback) {
-		var filesyncTime = this.FileSyncTime;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				return secure.respond(callback, err);
-			}
-
-			if (!conf.nginx.upstream) {
-				debug('No upstream block defined');
-				return secure.respond(callback, 'No upstream block defined');
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
 
 			var serverIndex = backendExists(conf.nginx.upstream.server, host);
@@ -163,40 +152,39 @@ class NginxUpstream {
 				conf.flush();
 				setTimeout(function () {
 					debug('Backend server removed => ' + host);
+					logger.Info('Backend server removed => ' + host + '. File : ' + path);
 					secure.respond(callback, null);
 				}, filesyncTime);
 				return;
 			} else {
 				debug('Backend server not found => %s', host);
+				logger.Info('Backend server not found => ' + host + '. File : ' + path);
 				return secure.respond(callback, 'Backend server not found => ' + host);
 			}
 		});
 	}
 
 	toggleBackend(host, callback) {
-		var filesyncTime = this.FileSyncTime;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				return secure.respond(callback, err);
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
-
-			if (!conf.nginx.upstream) {
-				debug('No upstream block defined');
-				return secure.respond(callback, 'No upstream block defined');
-			}
-			var serverIndex = backendExists(conf.nginx.upstream.server, host);
+			
+			let serverIndex = backendExists(conf.nginx.upstream.server, host);
 			if (serverIndex > -1) {
-				var server = conf.nginx.upstream.server;
-				var backendValue;
+				let server = conf.nginx.upstream.server;
+				let backendValue;
 				if (server && Array.isArray(server)) {
 					backendValue = server[serverIndex]._value;
 				} else {
 					backendValue = server._value;
 				}
 
-				var message = '';
-				var enabled = null;
+				let message = '';
+				let enabled = null;
 
 				if (backendValue.indexOf('down') == -1) {
 					if (server && Array.isArray(server)) {
@@ -218,28 +206,32 @@ class NginxUpstream {
 				conf.flush();
 				setTimeout(function () {
 					debug(message);
+					logger.Info(message + '. File : ' + path);
 					secure.respond(callback, null, enabled);
 				}, filesyncTime);
 				return;
 			} else {
 				debug('Backend server not found. => ' + host);
+				logger.Info('Backend server not found. => ' + host + '. File : ' + path);
 				return secure.respond(callback, 'Backend server not found. => ' + host);
 			}
 		});
 	}
 
 	setCompression(enable, types, callback) {
-		var filesyncTime = this.FileSyncTime;
-		var configFile = this.NginxConfigFilePath;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				return secure.respond(callback, err);
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
+
 			if (!conf.nginx.server) {
 				debug('No server block defined');
 				return secure.respond(callback, 'No server block defined');
 			}
+
 			if (!conf.nginx.server.gzip) {
 				conf.nginx.server._add('gzip ' + (enable ? 'on' : 'off'));
 			} else {
@@ -263,7 +255,7 @@ class NginxUpstream {
 			}
 			conf.flush();
 			setTimeout(function () {
-				debug('Compression is ' + (enable ? 'enabled' : 'disabled') + ' for config : ' + configFile);
+				debug('Compression is ' + (enable ? 'enabled' : 'disabled') + ' for config : ' + path);
 				secure.respond(callback, null, enable);
 			}, filesyncTime);
 			return;
@@ -271,17 +263,14 @@ class NginxUpstream {
 	}
 
 	toggleStickySession(cookieName, callback) {
-		var filesyncTime = this.FileSyncTime;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			if (err) {
-				debug(err);
-				return secure.respond(callback, err);
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			if (commonException) {
+				return secure.respond(callback, commonException);
 			}
-
-			if (!conf.nginx.upstream) {
-				debug('No upstream block defined');
-				return secure.respond(callback, 'No upstream block defined');
-			}
+			
 			if (!conf.nginx.server) {
 				debug('No server block defined');
 				return secure.respond(callback, 'No server block defined');
@@ -310,7 +299,8 @@ class NginxUpstream {
 	}
 
 	setServer(fqdn, sitename, setUpstream, callback) {
-		var filesyncTime = this.FileSyncTime;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
 			if (err) {
 				debug(err);
@@ -340,8 +330,8 @@ class NginxUpstream {
 	}
 
 	addCertificate(sitename, certificateLocationPath, callback) {
-		var filesyncTime = this.FileSyncTime;
-		var configFile = this.NginxConfigFilePath;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
 			if (err) {
 				debug(err);
@@ -369,7 +359,7 @@ class NginxUpstream {
 			}
 			conf.flush();
 			setTimeout(function () {
-				debug('SSL Certificate Paths Set. => ' + configFile);
+				debug('SSL Certificate Paths Set. => ' + path);
 				secure.respond(callback, null);
 			}, filesyncTime);
 			return;
@@ -377,8 +367,8 @@ class NginxUpstream {
 	}
 
 	removeCertificate(callback) {
-		var filesyncTime = this.FileSyncTime;
-		var configFile = this.NginxConfigFilePath;
+		let filesyncTime = this.FileSyncTime;
+		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
 			if (err) {
 				debug(err);
@@ -399,12 +389,27 @@ class NginxUpstream {
 			}
 			conf.flush();
 			setTimeout(function () {
-				debug('SSL Certificate Paths Set. => ' + configFile);
+				debug('SSL Certificate Paths Set. => ' + path);
 				secure.respond(callback, null);
 			}, filesyncTime);
 			return;
 		});
 	}
+}
+
+function handleCommonFileExceptions(err, filePath, upstream) {
+	if (err) {
+		debug(err);
+		logger.Error(new Error(err));
+		return err;
+	}
+
+	if (!upstream) {
+		debug('No upstream block defined');
+		logger.Error(new Error('No upstream block defined'));
+		return 'No upstream block defined';
+	}
+	return null;
 }
 
 module.exports = NginxUpstream;
