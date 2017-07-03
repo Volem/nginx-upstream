@@ -2,6 +2,7 @@
 var nginxConf = require('nginx-conf').NginxConfFile;
 var SecureCallback = require('secure-callback');
 var debug = require('debug')('Development');
+var logger = new (require('./bunyanlogger.js'))('nginx-upstream');
 
 var secure = new SecureCallback();
 
@@ -55,6 +56,7 @@ class NginxUpstream {
 	get NginxConfigFilePath() {
 		return this._nginxConfigFilePath;
 	}
+
 	set NginxConfigFilePath(v) {
 		this._nginxConfigFilePath = v;
 	}
@@ -62,12 +64,14 @@ class NginxUpstream {
 	get FileSyncTime() {
 		return this._fileSyncTime;
 	}
+
 	set FileSyncTime(v) {
 		this._fileSyncTime = v;
 	}
 
 	constructor(nginxConfigFilePath, fileSyncTime) {
 		if (!nginxConfigFilePath) {
+			logger.Error('nginx config file path required');
 			throw new Error('nginx config file path required');
 		}
 		this.NginxConfigFilePath = nginxConfigFilePath;
@@ -79,6 +83,7 @@ class NginxUpstream {
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
 			if (err) {
 				debug(err);
+				logger.Error(new Error(err));
 				return secure.respond(callback, err);
 			}
 			if (!conf.nginx.upstream) {
