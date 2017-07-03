@@ -2,21 +2,23 @@
 var Logger = require('./logbase.js');
 var bunyan = require('bunyan');
 
+
 class BunyanLogger extends Logger {
 	constructor(appName) {
-		this._logger = bunyan.createLogger({ name: appName });
+		super();
+		this.Logger = bunyan.createLogger({ name: appName });
 	}
 
 	_LogDebug(message){
-		this._logger.debug(message);
+		this.Logger.debug(message);
 	}
 
 	_LogInfo(message) {
-		this._logger.info(message);
+		this.Logger.info(message);
 	}
 
 	_LogError(err){
-		this._logger.error(err);
+		this.Logger.error(err);
 	}
 }
 

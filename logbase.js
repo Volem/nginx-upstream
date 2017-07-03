@@ -1,6 +1,14 @@
 'use strict';
 
 class LogBase {
+	Logger(v){
+		this._logger = v;
+	}
+
+	Logger(){
+		return this._logger;
+	}
+
 	Debug(message){
 		this._LogDebug(message);
 	}
