@@ -7,7 +7,17 @@ class BunyanLogger extends Logger {
 	constructor(appName) {
 		super();
 		this.Logger = bunyan.createLogger({
-			name: appName
+			name: appName,
+			streams: [
+				{
+					level: 'debug',
+					stream: process.stdout            
+				},
+				{
+					level: 'error',
+					path: './log/' + appName + '.log'
+				}
+			]
 		});
 	}
 
