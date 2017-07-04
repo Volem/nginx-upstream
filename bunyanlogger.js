@@ -4,17 +4,12 @@ var bunyan = require('bunyan');
 
 
 class BunyanLogger extends Logger {
-	constructor(appName) {
-		super();
+	constructor(appName, namespace) {
+		super(namespace);
 		this.Logger = bunyan.createLogger({
 			name: appName,
 			streams: [
 				{
-					level: 'debug',
-					stream: process.stdout            
-				},
-				{
-					level: 'error',
 					path: './log/' + appName + '.log'
 				}
 			]
