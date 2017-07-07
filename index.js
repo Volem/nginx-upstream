@@ -75,7 +75,7 @@ class NginxUpstream {
 			logger.Error('nginx config file path required');
 			throw new Error('nginx config file path required');
 		}
-		logger = new BunyanLogger('nginx-upstream');
+		logger = new BunyanLogger('nginx-upstream', namespace);
 		this.NginxConfigFilePath = nginxConfigFilePath;
 		this.FileSyncTime = fileSyncTime || 50;
 	}
@@ -84,7 +84,7 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
@@ -107,7 +107,7 @@ class NginxUpstream {
 	backendList(callback) {
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
@@ -139,7 +139,7 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
@@ -164,7 +164,7 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
@@ -217,7 +217,7 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
@@ -261,7 +261,7 @@ class NginxUpstream {
 		let filesyncTime = this.FileSyncTime;
 		let path = this.NginxConfigFilePath;
 		nginxConf.create(this.NginxConfigFilePath, function (err, conf) {
-			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream)
+			let commonException = handleCommonFileExceptions(err, path, err || conf.nginx.upstream);
 			if (commonException) {
 				return secure.respond(callback, commonException);
 			}
