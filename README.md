@@ -1,6 +1,6 @@
 # nginx-upstream [![Build Status](https://travis-ci.org/Volem/nginx-upstream.svg?branch=master)](https://travis-ci.org/Volem/nginx-upstream)
 
-Currently it is on release v0.1.3 and maintains primary functionality over nginx config file. Usage is pretty simple, you can use it with require to get our main class and use its instance with below constructor parameters.
+Currently it is on release v0.1.4 and maintains primary functionality over nginx config file. Usage is pretty simple, you can use it with require to get our main class and use its instance with below constructor parameters.
 
 ```bash
 npm install nginx-upstream --save
