@@ -5,7 +5,7 @@ const Debug = require('debug');
 class LogBase {
 	constructor(namespace) {
 		if(!namespace){
-			this.debug = Debug('development')
+			this.debug = Debug('development');
 			return;
 		}
 		this.debug = Debug(namespace);
